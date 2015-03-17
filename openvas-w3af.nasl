@@ -108,14 +108,16 @@ if (chomp(tolower(debug_str)) == "true") {
 	is_debug = TRUE;
 }
 
+is_debug = TRUE;
+
 foreach port_num (ports) {
 	if (is_debug) {
-		start_msg = "Start checking port: " + int(port_num);
+		start_msg = "Checking port: " + int(port_num);
 		if (get_port_state(port_num)) {
 			start_msg += " (OPEN)";
 		}
 		else {
-			start_msg += " (CLOSED)");
+			start_msg += " (CLOSED)";
 		}
 		log_message(port: port_num, data: start_msg);
 	}
@@ -156,13 +158,6 @@ foreach port_num (ports) {
 	cmd_filename = output_basename + '.cmd';
 	http_filename = output_basename + '-http.txt';
 
-	if (is_debug) {
-		preparing_msg = "URL: " + http_url + " (ENCAPS: " + encaps + ")\n";
-		preparing_msg += "Report: " + report_filename + "\nCmd: " + cmd_filename
-
-		log_message(port: port_num, data: preparing_msg);
-	}
-
 	cmd_data = "profiles use " + use_profile + '\n';
 	cmd_data += 'plugins\n';
 	cmd_data += 'output text_file\n';
@@ -178,6 +173,14 @@ foreach port_num (ports) {
 	cmd_data += 'set http_output_file ' + http_filename + '\n';
 	cmd_data += 'back\n';
 	cmd_data += 'back\n';
+
+	if (is_debug) {
+		preparing_msg = "URL: " + http_url + " (ENCAPS: " + encaps + ")\n";
+		preparing_msg += "Report: " + report_filename + "\nCmd: " + cmd_filename;
+
+		log_message(port: port_num, data: preparing_msg);
+	}
+
 	cmd_data += 'target set target ' + http_url + '\n';
 	cmd_data += 'start\n';
 	cmd_data += 'exit\n';
