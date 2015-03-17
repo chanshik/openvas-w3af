@@ -108,8 +108,6 @@ if (chomp(tolower(debug_str)) == "true") {
 	is_debug = TRUE;
 }
 
-is_debug = TRUE;
-
 foreach port_num (ports) {
 	if (is_debug) {
 		start_msg = "Checking port: " + int(port_num);
