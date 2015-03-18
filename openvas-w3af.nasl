@@ -57,9 +57,12 @@ if (description)
 	script_add_preference(name: "Path of w3af", type: "entry", value: "/opt/w3af/w3af_console");
 	script_add_preference(name: "Ports", type: "entry", value: "80,443");
 	script_add_preference(name: "Seed URL", type: "entry", value: "");
+	script_add_preference(name: "Web Spider: only_forward", type: "entry", value: "False");
+	script_add_preference(name: "Web Spider: ignore_regex", type: "entry", value: "");
+	script_add_preference(name: "Web Spider: follow_regex", type: "entry", value: ".*");
 	script_add_preference(
-		name: "Profile", type:"radio",
-		value:"fast_scan;sitemap;web_infrastructure;OWASP_TOP10;audit_high_risk;bruteforce;full_audit");
+		name: "Profile", type: "radio",
+		value: "fast_scan;sitemap;web_infrastructure;OWASP_TOP10;audit_high_risk;bruteforce;full_audit");
 	script_add_preference(name: "Debug", type: "entry", value: "False");
 
 	script_dependencies("find_service.nasl", "httpver.nasl", "http_login.nasl");
@@ -102,6 +105,27 @@ else {
 	ports = split(ports_str, sep: ",", keep: 0);
 }
 
+pref_spider_only_forward = script_get_preference("Web Spider: only_forward");
+if (! pref_spider_only_forward) {
+	spider_only_forward = FALSE;
+}
+else if (chomp(tolower(pref_spider_only_forward)) == "true") {
+	spider_only_forward = TRUE;
+}
+else {
+	spider_only_forward = FALSE;
+}
+
+spider_ignore_regex = script_get_preference("Web Spider: ignore_regex");
+if (! spider_ignore_regex) {
+	spider_ignore_regex = "";
+}
+
+spider_follow_regex = script_get_preference("Web Spider: follow_regex");
+if (! spider_follow_regex) {
+	spider_follow_regex = ".*";
+}
+
 debug_str = script_get_preference("Debug");
 is_debug = FALSE;
 if (chomp(tolower(debug_str)) == "true") {
@@ -125,7 +149,7 @@ foreach port_num (ports) {
 	}
 
 	encaps = get_port_transport(port_num);
-	if (IS_ENCAPS_SSL(encaps)) {
+	if (encaps > 1) {
 		http_prefix = "https";
 	}
 	else {
@@ -170,6 +194,18 @@ foreach port_num (ports) {
 	cmd_data += 'set output_file ' + report_filename + '\n';
 	cmd_data += 'set http_output_file ' + http_filename + '\n';
 	cmd_data += 'back\n';
+
+	cmd_data += 'crawl config web_spider\n';
+	if (spider_only_forward) {
+		cmd_data += 'set only_forward True\n';
+	}
+	else {
+		cmd_data += 'set only_forward False\n';
+	}
+	cmd_data += 'set ignore_regex ' + spider_ignore_regex + '\n';
+	cmd_data += 'set follow_regex ' + spider_follow_regex + '\n';
+	cmd_data += 'back\n';
+
 	cmd_data += 'back\n';
 
 	if (is_debug) {
